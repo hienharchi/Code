@@ -2,98 +2,99 @@
 
 #include<conio.h>
 
+#include<stdlib.h>
+
 int main(void) {
   char c;
   int i, j, d;
   do {
-    int n, t, k = 0, g[10][10], dem = 0, count = 0, har = 0, count2 = 0;
-    printf("\nThe number of vertices: n= "); // количество вершин
+    int m, n, t, k = 0, g[10][10], dem = 0, count = 0, har1 = 0;
+    printf("\nThe number of vertices (dinh): n= "); // количество вершин
     scanf("%d", & n);
+    printf("\nThe number of edges (canh): m= "); // количество ребер
+    scanf("%d", & m);
     char x[n];
+    int h[n][n], har[10] = {
+      0
+    };
+    for (i = 0; i < n; i++) {
+      for (j = 0; j < n; j++) h[i][j] = 0;
+    }
     printf("\nEnter the names of the vertices: ");
     for (i = 0; i < n; i++) {
       printf("\nx[%d]=", i);
       x[i] = getche(); //возвращает очередной символ, считанный с консоли, и выводит этот символ на экран.
     }
     //--------------------------------------------------------------//
-    //	     	    Ввод динамической матрицы	                	//
+    //	     	                 Ввод список ребер	                	//
     //--------------------------------------------------------------//
-    printf("\nEnter adjacentry matrix: \n");
-    for (i = 0; i < n; i++)
-      for (j = 0; j < n; j++) {
+    printf("\nEnter the edges: \n");
+    for (i = 0; i < m; i++)
+      for (j = 0; j < 2; j++) {
         scanf("%d", & t);
         g[i][j] = t;
       }
     //--------------------------------------------------------------//
-    //	            	Проверка ли является граф деревом	     	//
-    //--------------------------------------------------------------//
-    for (i = 0; i < n; i++) {
-      if (g[i][i] > 0) {
-        printf("Graf multigrf not tree \n"); //Нет дерево
-        dem = dem + 1;
-        goto exit; // goto - Оператор безусловно передает управление оператору, помеченному указанным идентификатором.
-      }
-    }
-    for (i = 0; i < n; i++)
-      for (j = 0; j < n; j++) {
-        if (g[i][j] > 1) {
-          printf("Multigraph not tree \n"); //Нет дерево
-          dem = dem + 1;
-          goto exit;
-        }
-      }
-    printf("Simple graph\n");
-    goto exit;
-
-    exit:
-      if (dem == 0) {
-        for (i = 0; i < n; i++) {
-          for (j = 0; j < n; j++)
-            if (g[i][j] > 0) k += 1;
-        }
-        for (i = 0; i < n; i++) {
-          for (j = 0; j < n; j++) {
-            if (g[i][j] == 0) count = count + 1;
-          }
-          if (count < n) count = 0;
-          else har++; //Проверка сущеуствуются вершины в отдельности ?
-        }
-        for (i = 0; i < n; i++) {
-          for (j = 0; j < n; j++) {
-            if (g[i][j] != 0) count2 = count2 + 1;
-          }
-        }
-        //--------------------------------------------------------------//
-        //		     	Проверка на связность                   		//
-        //--------------------------------------------------------------//
-        if (k >= ((n - 1) * (n - 2) / 2) && har == 0)
-          printf("\nConnected graph ");
-        else
-          printf("\nGraph is not connected \n");
-        if ((count2 / 2) == n)
-          printf("but not tree");
-        getch();
-      }
-    //--------------------------------------------------------------//
-    //		            	Работа с  файлом	             		//
+    //		                 	Работа с  файлом	                  		//
     //--------------------------------------------------------------//
     FILE * f;
-    f = fopen("grap.dot", "w"); // открыли файл Dot_file.txt для записи
+    f = fopen("grap.dot", "w"); // открыли файл grap.dot для записи
     fprintf(f, "graph mygrap{ \n");
     for (i = 0; i < n; i++)
       fprintf(f, "%c\n", x[i]);
-    for (i = 0; i < n; i++)
-      for (j = 0; j <= i; j++) {
-        if (g[i][j] != 0) {
-          for (d = 0; d < g[i][j]; d++)
-            fprintf(f, "%c--%c\n", x[i], x[j]);
-        }
-
-      }
+    for (i = 0; i < m; i++) {
+      fprintf(f, "%d--%d\n", g[i][0], g[i][1]);
+    }
     fprintf(f, "}");
-    printf("\n\n Do you want to do again? (yes (y) or no (n))");
-    printf("%d", count);
+    fclose(f);
     c = getche();
+    //Списка ребер преобразуется в динамическую матрицу//
+    for (i = 0; i < m; i++) {
+      int a = g[i][0];
+      int b = g[i][1];
+      if (g[i][0] != g[i][1]) {
+        h[a - 1][b - 1]++;
+        h[b - 1][a - 1]++;
+      } else h[a - 1][a - 1]++;
+    }
+    for (i = 0; i < n; i++) {
+      if (h[i][i] != 0) count = count + 1;
+    }
+    /*printf("Dynamic matrix\n");
+    for(i=0;i<n;i++){
+      for(j=0;j<n;j++)
+      {
+      printf("%d\t",h[i][j]);
+      }
+      printf("\n");
+      }*/
+    //--------------------------------------------------------------//
+    //	            	Проверка ли является граф деревом	          	//
+    //--------------------------------------------------------------//
+    for (i = 0; i < n; i++) {
+      for (j = 0; j < n; j++) {
+        if (h[i][j] == 0) har[i] = har[i] + 1;
+        else dem = dem + 1;
+      }
+    }
+    
+    
+    for (i = 0; i < n; i++) {
+      if (h[i][i] > 0 && har[i] == n - 1 || har[i] == n) {
+        printf("Graph is not connected => Graph is not tree\n");
+        return 0;
+      }
+    }
+    if (har1 != n && (dem / 2) >= n - 1) {
+      printf("Graph is connected \n");
+      if ((dem / 2) == n || count != 0) printf(" but not tree ");
+      else printf("Graph is tree");
+    } else {
+      printf("Graph is not connected => Graph is not tree\n");
+    }
+    //Команды системы, чтобы передавать файл graph.dot в png и открывать картинку графа//
+    system("dot D:\\C\\Dz\\grap.dot -Tpng -o grap.png");
+    system("rundll32  \"%ProgramFiles%\\Windows Photo Viewer\\PhotoViewer.dll\", ImageView_Fullscreen D:\\C\\Dz\\grap.png");
   } while ((c == 'y') || (c == 'Y'));
   getch();
   return 0;
